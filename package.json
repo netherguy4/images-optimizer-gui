@@ -1,0 +1,27 @@
+{
+  "name": "images-optimizer",
+  "private": true,
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=22",
+    "yarn": ">=1.22.22 <2"
+  },
+  "scripts": {
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "dev": "nuxt dev --host '3000'",
+    "generate": "nuxt generate",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs",
+    "lint & fix": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "nuxt": "^4.2.2",
+    "vue": "^3.5.26",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@tauri-apps/api": "^2.9.1",
+    "@tauri-apps/cli": "^2.9.6"
+  }
+}
