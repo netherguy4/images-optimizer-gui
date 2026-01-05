@@ -1,0 +1,21 @@
+/* stylelint-disable scss/dollar-variable-pattern */
+@use '../../utils/breakpoints.scss' as *;
+@use '../../utils/typography' as *;
+
+@mixin typography-class($typography, $suffix: false) {
+  @each $label, $map in $typography {
+    $suffixString: '';
+
+    @if $suffix {
+      $suffixString: '-#{$suffix}';
+    }
+
+    .#{$label + $suffixString} {
+      @include typography($label, $suffix);
+
+      @include media-breakpoint-down(sm) {
+        @include typography-mobile($label, $suffix);
+      }
+    }
+  }
+}

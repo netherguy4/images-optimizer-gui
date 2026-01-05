@@ -14,9 +14,12 @@
       {
         "title": "Images Optimizer",
         "width": 800,
+        "minWidth": 770,
         "height": 600,
+        "minHeight": 560,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "maximized": false
       }
     ],
     "security": {

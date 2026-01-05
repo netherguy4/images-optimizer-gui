@@ -1,0 +1,6 @@
+@use '../../utils/typography' as *;
+@use 'mixins' as *;
+
+@each $suffix, $value in $thickness {
+  @include typography-class($typography, $suffix);
+}

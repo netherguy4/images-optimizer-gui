@@ -1,0 +1,64 @@
+@use '../utils/variables.scss' as *;
+@use '../utils/utils.scss' as *;
+
+:root {
+  color-scheme: light dark;
+}
+
+html {
+  text-size-adjust: 100%;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  height: stretch;
+}
+
+@property --gradient1 {
+  initial-value: light-dark(#F8FAFC, #0F172B);
+  inherits: true;
+  syntax: '<color>';
+}
+
+@property --gradient2 {
+  initial-value: light-dark(#F1F5F9, #1D293D);
+  inherits: true;
+  syntax: '<color>';
+}
+
+body {
+  --gradient1: light-dark(#F8FAFC, #0F172B);
+  --gradient2: light-dark(#F1F5F9, #1D293D);
+
+  display: flex;
+  flex-direction: column;
+  min-width: 320px;
+  min-height: 100vh;
+  min-height: stretch;
+  font-family: $font-family-default;
+  font-size: em($font-size-default);
+  font-weight: 400;
+  line-height: 1;
+  color: $text-color-primary;
+  background: linear-gradient(135deg, var(--gradient1) 0%, var(--gradient2) 100%), light-dark(#FFFFFF, #0A0A0A);
+  transition: $time-normal $ease;
+  transition-property: color, background-color, --gradient1, --gradient2;
+}
+
+* {
+  -ms-overflow-style: none; // IE and Edge
+  scrollbar-width: none; // Firefox
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* stylelint-disable-next-line selector-id-pattern */
+#__nuxt {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+}
+
+#app {
+  flex-grow: 1;
+}
