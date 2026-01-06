@@ -103,6 +103,7 @@ const openOriginal = async () => {
   &__icon {
     width: em(30);
     height: em(30);
+    color: $color-white;
   }
 
   &__img {
