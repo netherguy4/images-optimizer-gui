@@ -1,5 +1,7 @@
 <script setup>
 import { formatSize } from '@/utils/helpers';
+import Simplebar from 'simplebar-vue';
+import 'simplebar/dist/simplebar.min.css';
 
 const filesStore = useFilesStore();
 const { items, totalItems, totalSize } = storeToRefs(filesStore);
@@ -21,7 +23,6 @@ const { items, totalItems, totalSize } = storeToRefs(filesStore);
               <div class="files-list-block__subtitle">
                 <p class="s1-r">
                   {{ $t('sections.files-list.subtitle') }}
-
                   {{ formatSize(totalSize) }}
                 </p>
               </div>
@@ -38,14 +39,16 @@ const { items, totalItems, totalSize } = storeToRefs(filesStore);
             </div>
           </div>
 
-          <div v-auto-animate class="files-list-block__content">
-            <CardListItem
-              v-for="item in items"
-              :key="item.id"
-              :item="item"
-              @remove="filesStore.removeById"
-            />
-          </div>
+          <Simplebar class="files-list-block__scroll">
+            <div v-auto-animate class="files-list-block__content">
+              <CardListItem
+                v-for="item in items"
+                :key="item.id"
+                :item="item"
+                @remove="filesStore.removeById"
+              />
+            </div>
+          </Simplebar>
         </div>
       </div>
     </div>
@@ -68,6 +71,7 @@ const { items, totalItems, totalSize } = storeToRefs(filesStore);
 
   &__header {
     display: flex;
+    flex-shrink: 0;
     align-items: flex-start;
     justify-content: space-between;
   }
@@ -81,6 +85,26 @@ const { items, totalItems, totalSize } = storeToRefs(filesStore);
   &__subtitle {
     color: $text-color-secondary;
     transition: color $time-normal $ease;
+  }
+
+  &__scroll {
+    max-height: em(300);
+    padding-right: em(12);
+    margin-right: em(-12);
+
+    :deep(.simplebar-scrollbar::before) {
+      background-color: $background-color-additional;
+      opacity: 1;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+
+    :deep(.simplebar-track.simplebar-vertical) {
+      width: 6px;
+      background-color: transparent;
+    }
   }
 
   &__content {
