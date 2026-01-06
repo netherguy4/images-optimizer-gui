@@ -19,6 +19,20 @@ const emit = defineEmits(['remove']);
 
 const isOpen = ref(props.item.isOpen);
 
+const shouldRenderChildren = ref(props.item.isOpen);
+let collapseTimeout = null;
+
+watch(isOpen, (newVal) => {
+  if (newVal) {
+    if (collapseTimeout) clearTimeout(collapseTimeout);
+    shouldRenderChildren.value = true;
+  } else {
+    collapseTimeout = setTimeout(() => {
+      shouldRenderChildren.value = false;
+    }, 300);
+  }
+});
+
 const toggleFolder = () => {
   if (props.item.type === 'folder') {
     isOpen.value = !isOpen.value;
@@ -91,7 +105,11 @@ const toggleFolder = () => {
       :when="item.type === 'folder' && isOpen"
       class="ui-list-item__collapse"
     >
-      <div v-auto-animate class="ui-list-item__children">
+      <div
+        v-if="shouldRenderChildren"
+        v-auto-animate
+        class="ui-list-item__children"
+      >
         <CardListItem
           v-for="child in item.children"
           :key="child.id"
@@ -114,7 +132,16 @@ const toggleFolder = () => {
     margin-left: calc(em(24) * var(--level, 0));
     border: 1px solid $border-color-secondary;
     border-radius: em(14);
-    transition: border-color $time-normal $ease;
+    transition: $time-normal $ease;
+    transition-property: border-color, background-color;
+
+    &--folder {
+      cursor: pointer;
+
+      @include hover {
+        background-color: $background-color-tertiary;
+      }
+    }
   }
 
   &__delete {

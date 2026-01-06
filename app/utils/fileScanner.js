@@ -1,6 +1,5 @@
 import { stat, readDir } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
-
 import allowedExtensions from '../configs/supportedExt';
 
 const isSupported = (fileName) => {
@@ -42,10 +41,18 @@ const buildFileTree = async (currentPath) => {
   try {
     const entries = await readDir(currentPath);
 
-    for (const entry of entries) {
-      const childPath = await join(currentPath, entry.name);
-      const childNode = await buildFileTree(childPath);
+    const promises = entries.map(async (entry) => {
+      if (entry.isFile && !isSupported(entry.name)) {
+        return null;
+      }
 
+      const childPath = await join(currentPath, entry.name);
+      return buildFileTree(childPath);
+    });
+
+    const results = await Promise.all(promises);
+
+    for (const childNode of results) {
       if (childNode) {
         children.push(childNode);
         totalSize += childNode.size;
@@ -72,10 +79,8 @@ const buildFileTree = async (currentPath) => {
 };
 
 export const processPaths = async (paths) => {
-  const resultRoots = [];
-  for (const path of paths) {
-    const node = await buildFileTree(path);
-    if (node) resultRoots.push(node);
-  }
-  return resultRoots;
+  const promises = paths.map((path) => buildFileTree(path));
+  const results = await Promise.all(promises);
+
+  return results.filter((node) => node !== null);
 };

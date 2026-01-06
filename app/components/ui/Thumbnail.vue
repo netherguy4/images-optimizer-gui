@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
+import { openPath } from '@tauri-apps/plugin-opener';
 
 const props = defineProps({
   src: { type: String, required: true },
@@ -55,19 +56,39 @@ watch(
     if (root.value && observer) observer.observe(root.value);
   },
 );
+
+const openOriginal = async () => {
+  if (!props.src) return;
+  try {
+    await openPath(props.src);
+  } catch (err) {
+    console.error('Failed to open image:', err);
+  }
+};
 </script>
 
 <template>
-  <div ref="root" class="thumb-container" :class="className">
-    <AFade>
+  <div
+    ref="root"
+    class="thumb-container"
+    :class="className"
+    @click.stop="openOriginal"
+  >
+    <ACrossFade>
       <img
         v-if="thumbnailSrc"
         :src="thumbnailSrc"
         :alt="alt"
         class="thumb-container__img"
       />
-      <div v-else class="thumb-container__skeleton"></div>
-    </AFade>
+      <div v-else class="thumb-container__img">
+        <div class="thumb-container__skeleton"></div>
+      </div>
+    </ACrossFade>
+
+    <div class="thumb-container__overlay">
+      <CIcon name="eye" class="thumb-container__icon" />
+    </div>
   </div>
 </template>
 
@@ -79,20 +100,44 @@ watch(
   overflow: hidden;
   border-radius: 4px;
 
+  &__icon {
+    width: em(30);
+    height: em(30);
+  }
+
   &__img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     background-color: $background-color-secondary;
-    transition: background-color $time-normal $ease;
+    transition: $time-normal $ease;
+    transition-property: background-color, opacity;
   }
 
   &__skeleton {
     width: 100%;
     height: 100%;
     background-color: $background-color-tertiary;
-    transition: background-color $time-normal $ease;
+    transition: $time-normal $ease;
+    transition-property: background-color, opacity;
     animation: pulse 1.5s infinite;
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: rgba($color-black, 0.5);
+    opacity: 0;
+    transition: opacity $time-normal $ease;
+
+    @include hover {
+      opacity: 1;
+    }
   }
 }
 

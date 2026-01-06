@@ -18,7 +18,9 @@ use tauri::{Emitter, State, Window};
 use walkdir::WalkDir;
 
 use fs_utils::copy_dir_recursive;
-use image_ops::{generate_avif, generate_webp, process_jpg, process_png, generate_thumbnail, ImageCache};
+use image_ops::{
+    generate_avif, generate_thumbnail, generate_webp, process_jpg, process_png, ImageCache,
+};
 use tools::get_png_tools;
 
 struct AppState {
@@ -293,6 +295,7 @@ fn main() {
         .build();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
         .manage(AppState {

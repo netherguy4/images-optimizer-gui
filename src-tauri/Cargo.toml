@@ -38,3 +38,4 @@ tauri-plugin-fs = "2"
 base64 = "0.22.1"
 tokio = "1.49.0"
 moka = { version = "0.12.12", features = ["future"] }
+tauri-plugin-opener = "2"

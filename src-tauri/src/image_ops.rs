@@ -1,13 +1,13 @@
 use crate::tools::{get_tool_ref, ToolPath};
+use base64::{engine::general_purpose, Engine as _};
 use image::{DynamicImage, GenericImageView, ImageFormat};
+use moka::future::Cache;
 use rgb::FromSlice;
 use std::fs;
-use std::io::{Write, Cursor};
+use std::io::{Cursor, Write};
 use std::path::Path;
 use std::process::Command;
-use base64::{Engine as _, engine::general_purpose};
 use tauri::{command, State};
-use moka::future::Cache;
 
 pub struct ImageCache(pub Cache<String, String>);
 
@@ -137,7 +137,10 @@ pub fn generate_avif(img: &DynamicImage, path: &Path, original_size: u64) -> u64
 }
 
 #[command]
-pub async fn generate_thumbnail(path: String, state: State<'_, ImageCache>) -> Result<String, String> {
+pub async fn generate_thumbnail(
+    path: String,
+    state: State<'_, ImageCache>,
+) -> Result<String, String> {
     if let Some(cached_b64) = state.0.get(&path).await {
         return Ok(cached_b64);
     }
@@ -147,10 +150,14 @@ pub async fn generate_thumbnail(path: String, state: State<'_, ImageCache>) -> R
         let img = image::open(&path_clone).map_err(|e| e.to_string())?;
         let thumbnail = img.thumbnail(128, 128);
         let mut buffer = Cursor::new(Vec::new());
-        thumbnail.write_to(&mut buffer, ImageFormat::Png).map_err(|e| e.to_string())?;
+        thumbnail
+            .write_to(&mut buffer, ImageFormat::Png)
+            .map_err(|e| e.to_string())?;
         let encoded = general_purpose::STANDARD.encode(buffer.get_ref());
         Ok::<String, String>(format!("data:image/png;base64,{}", encoded))
-    }).await.map_err(|e| e.to_string())??;
+    })
+    .await
+    .map_err(|e| e.to_string())??;
 
     state.0.insert(path, result.clone()).await;
 
