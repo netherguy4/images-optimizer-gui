@@ -4,7 +4,7 @@ use image::{DynamicImage, GenericImageView, ImageFormat};
 use moka::future::Cache;
 use rgb::FromSlice;
 use std::fs;
-use std::io::{Cursor, Write};
+use std::io::Cursor;
 use std::path::Path;
 use std::process::Command;
 use tauri::{command, State};
@@ -13,65 +13,43 @@ pub struct ImageCache(pub Cache<String, String>);
 
 pub fn process_jpg(path: &Path, quality: u8) -> u64 {
     let original_size = fs::metadata(path).map(|m| m.len()).unwrap_or(0);
+
     let img = match image::open(path) {
         Ok(i) => i.to_rgb8(),
         Err(_) => return 0,
     };
-    let width = img.width() as usize;
-    let height = img.height() as usize;
+
+    let (width, height) = img.dimensions();
     let pixels = img.as_raw();
 
     let mut comp = mozjpeg::Compress::new(mozjpeg::ColorSpace::JCS_RGB);
-    comp.set_size(width, height);
+    comp.set_size(width as usize, height as usize);
     comp.set_quality(quality as f32);
     comp.set_progressive_mode();
     comp.set_optimize_scans(true);
-    let mut comp = comp.start_compress(Vec::new()).unwrap();
 
-    if comp.write_scanlines(pixels).is_ok() {
-        let compressed_data = match comp.finish() {
-            Ok(d) => d,
-            Err(_) => return 0,
-        };
-        let new_len = compressed_data.len() as u64;
-        if new_len > 0 && new_len < original_size {
-            if let Ok(mut f) = fs::File::create(path) {
-                if f.write_all(&compressed_data).is_ok() {
-                    return original_size - new_len;
-                }
-            }
-        }
+    let mut comp = match comp.start_compress(Vec::new()) {
+        Ok(c) => c,
+        Err(_) => return 0,
+    };
+
+    if comp.write_scanlines(pixels).is_err() {
+        return 0;
     }
-    0
+
+    let compressed_data = match comp.finish() {
+        Ok(d) => d,
+        Err(_) => return 0,
+    };
+
+    save_image(path, &compressed_data, original_size)
 }
 
 pub fn process_png(path: &Path, pq: &ToolPath, oxi: &ToolPath, min: u8, max: u8) -> u64 {
     let original_size = fs::metadata(path).map(|m| m.len()).unwrap_or(0);
 
-    #[cfg(target_os = "windows")]
-    use std::os::windows::process::CommandExt;
-    #[cfg(target_os = "windows")]
-    const CREATE_NO_WINDOW: u32 = 0x08000000;
-
-    let mut cmd = Command::new(get_tool_ref(pq));
-    cmd.args([
-        &format!("--quality={}-{}", min, max),
-        "--speed=3",
-        "--force",
-        "--ext=.png",
-        "--skip-if-larger",
-    ])
-    .arg(path);
-    #[cfg(target_os = "windows")]
-    cmd.creation_flags(CREATE_NO_WINDOW);
-    let _ = cmd.output();
-
-    let mut cmd2 = Command::new(get_tool_ref(oxi));
-    cmd2.args(["-o", "4", "--strip", "all", "-t", "1"])
-        .arg(path);
-    #[cfg(target_os = "windows")]
-    cmd2.creation_flags(CREATE_NO_WINDOW);
-    let _ = cmd2.output();
+    run_pngquant(path, pq, min, max);
+    run_oxipng(path, oxi);
 
     let new_size = fs::metadata(path).map(|m| m.len()).unwrap_or(original_size);
     if original_size > new_size {
@@ -79,6 +57,43 @@ pub fn process_png(path: &Path, pq: &ToolPath, oxi: &ToolPath, min: u8, max: u8)
     } else {
         0
     }
+}
+
+fn run_pngquant(path: &Path, tool: &ToolPath, min: u8, max: u8) {
+    #[cfg(target_os = "windows")]
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+    let mut cmd = Command::new(get_tool_ref(tool));
+    cmd.args([
+        &format!("--quality={}-{}", min, max),
+        "--speed=3",
+        "--force",
+        "--ext=.png",
+    ])
+    .arg(path);
+
+    #[cfg(target_os = "windows")]
+    use std::os::windows::process::CommandExt;
+    #[cfg(target_os = "windows")]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+
+    let _ = cmd.output();
+}
+
+fn run_oxipng(path: &Path, tool: &ToolPath) {
+    #[cfg(target_os = "windows")]
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+    let mut cmd = Command::new(get_tool_ref(tool));
+    cmd.args(["-o", "4", "--strip", "all", "-t", "1"])
+        .arg(path);
+
+    #[cfg(target_os = "windows")]
+    use std::os::windows::process::CommandExt;
+    #[cfg(target_os = "windows")]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+
+    let _ = cmd.output();
 }
 
 pub fn generate_webp(img: &DynamicImage, path: &Path, quality: f32, original_size: u64) -> u64 {
@@ -98,22 +113,15 @@ pub fn generate_webp(img: &DynamicImage, path: &Path, quality: f32, original_siz
         }
     };
 
-    if fs::write(&webp_path, &*memory).is_ok() {
-        let webp_size = memory.len() as u64;
-        if original_size > webp_size {
-            return original_size - webp_size;
-        }
-    }
-    0
+    save_image(&webp_path, &*memory, original_size)
 }
 
 pub fn generate_avif(img: &DynamicImage, path: &Path, original_size: u64) -> u64 {
     let avif_path = path.with_extension("avif");
     let rgba = img.to_rgba8();
-    let width = rgba.width() as usize;
-    let height = rgba.height() as usize;
+    let (width, height) = img.dimensions();
 
-    let src_img = imgref::Img::new(rgba.as_raw().as_slice().as_rgba(), width, height);
+    let src_img = imgref::Img::new(rgba.as_raw().as_rgba(), width as usize, height as usize);
 
     let enc = ravif::Encoder::new()
         .with_quality(65.0)
@@ -122,16 +130,20 @@ pub fn generate_avif(img: &DynamicImage, path: &Path, original_size: u64) -> u64
         .encode_rgba(src_img);
 
     match enc {
-        Ok(encoded_image) => {
-            let data = encoded_image.avif_file;
-            if fs::write(&avif_path, &data).is_ok() {
-                let avif_size = data.len() as u64;
-                if original_size > avif_size {
-                    return original_size - avif_size;
-                }
-            }
+        Ok(encoded_image) => save_image(&avif_path, &encoded_image.avif_file, original_size),
+        Err(e) => {
+            eprintln!("AVIF Error for {:?}: {}", path, e);
+            0
         }
-        Err(e) => eprintln!("AVIF Error for {:?}: {}", path, e),
+    }
+}
+
+fn save_image(path: &Path, data: &[u8], original_size: u64) -> u64 {
+    if fs::write(path, data).is_ok() {
+        let new_len = data.len() as u64;
+        if new_len > 0 && original_size > new_len {
+            return original_size - new_len;
+        }
     }
     0
 }
@@ -160,6 +172,5 @@ pub async fn generate_thumbnail(
     .map_err(|e| e.to_string())??;
 
     state.0.insert(path, result.clone()).await;
-
     Ok(result)
 }
