@@ -105,9 +105,9 @@ const toggleFolder = () => {
       :when="item.type === 'folder' && isOpen"
       class="ui-list-item__collapse"
     >
-      <div
+      <ASmoothList
         v-if="shouldRenderChildren"
-        v-auto-animate
+        tag="div"
         class="ui-list-item__children"
       >
         <CardListItem
@@ -117,7 +117,7 @@ const toggleFolder = () => {
           :level="level + 1"
           @remove="filesStore.removeById"
         />
-      </div>
+      </ASmoothList>
     </Collapse>
   </div>
 </template>

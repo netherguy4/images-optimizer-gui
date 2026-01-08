@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { invoke } from '@tauri-apps/api/core';
 import { openPath } from '@tauri-apps/plugin-opener';
 
@@ -10,9 +10,7 @@ const props = defineProps({
 });
 
 const thumbnailSrc = ref('');
-const root = ref(null);
 const isLoaded = ref(false);
-let observer = null;
 
 const generate = async () => {
   if (isLoaded.value || !props.src) return;
@@ -27,25 +25,7 @@ const generate = async () => {
 };
 
 onMounted(() => {
-  observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          generate();
-          if (root.value) observer.unobserve(root.value);
-        }
-      });
-    },
-    {
-      rootMargin: '100px',
-    },
-  );
-
-  if (root.value) observer.observe(root.value);
-});
-
-onBeforeUnmount(() => {
-  if (observer) observer.disconnect();
+  generate();
 });
 
 watch(
@@ -53,7 +33,7 @@ watch(
   () => {
     isLoaded.value = false;
     thumbnailSrc.value = '';
-    if (root.value && observer) observer.observe(root.value);
+    generate();
   },
 );
 
@@ -68,12 +48,7 @@ const openOriginal = async () => {
 </script>
 
 <template>
-  <div
-    ref="root"
-    class="thumb-container"
-    :class="className"
-    @click.stop="openOriginal"
-  >
+  <div class="thumb-container" :class="className" @click.stop="openOriginal">
     <ACrossFade>
       <img
         v-if="thumbnailSrc"
@@ -81,7 +56,7 @@ const openOriginal = async () => {
         :alt="alt"
         class="thumb-container__img"
       />
-      <div v-else class="thumb-container__img">
+      <div v-else>
         <div class="thumb-container__skeleton"></div>
       </div>
     </ACrossFade>
@@ -116,6 +91,8 @@ const openOriginal = async () => {
   }
 
   &__skeleton {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     background-color: $background-color-tertiary;

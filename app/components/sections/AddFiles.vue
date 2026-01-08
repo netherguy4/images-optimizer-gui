@@ -75,14 +75,14 @@ onUnmounted(() => {
       <div class="add-files-block__buttons">
         <UiButton
           class="add-files-block__button"
-          title="sections.add-files.buttons.0"
+          :title="$t('sections.add-files.buttons.0')"
           icon="file-add"
           @click="triggerFileSelect"
         />
 
         <UiButton
           class="add-files-block__button"
-          title="sections.add-files.buttons.1"
+          :title="$t('sections.add-files.buttons.1')"
           icon="folder-add"
           @click="triggerFolderSelect"
         />

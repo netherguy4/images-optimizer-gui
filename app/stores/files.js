@@ -13,6 +13,10 @@ export const useFilesStore = defineStore('files', () => {
     return items.value.reduce((acc, item) => acc + (item.fileCount || 0), 0);
   });
 
+  const sourcePaths = computed(() => {
+    return items.value.map((item) => item.path);
+  });
+
   const addItemsFromPaths = async (paths) => {
     const newTrees = await processPaths(paths);
     newTrees.forEach((newRoot) => {
@@ -75,6 +79,7 @@ export const useFilesStore = defineStore('files', () => {
     items,
     totalSize,
     totalItems,
+    sourcePaths,
     addItemsFromPaths,
     removeById,
     clearAll,

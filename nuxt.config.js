@@ -10,7 +10,6 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
     '@vueuse/nuxt',
     'nuxt-svgo',
-    '@formkit/auto-animate/nuxt',
     '@nuxt/eslint',
     '@nuxtjs/color-mode',
   ],

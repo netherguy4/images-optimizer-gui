@@ -16,7 +16,7 @@ defineProps({
   theme: {
     type: String,
     default: 'primary',
-    validator: (v) => ['primary', 'secondary', 'warn'].includes(v),
+    validator: (v) => ['primary', 'accent', 'warn'].includes(v),
   },
   size: {
     type: String,
@@ -42,7 +42,7 @@ defineProps({
 
     <slot>
       <span v-if="!$slots.default && title" class="ui-button__font">
-        {{ $t(title) }}
+        {{ title }}
       </span>
     </slot>
 
@@ -90,6 +90,16 @@ defineProps({
         &__icon {
           color: $icon-color-secondary;
         }
+      }
+    }
+
+    &--accent {
+      color: $color-white;
+      background-color: $accent-color-primary;
+      border-color: $border-color-secondary;
+
+      @include hover {
+        background-color: $accent-color-tertiary;
       }
     }
 

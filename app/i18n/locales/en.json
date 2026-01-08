@@ -2,7 +2,8 @@
   "common": {
     "clear-all": "Clear All",
     "plurals": {
-      "files": "{count} file | {count} files"
+      "files": "{count} file | {count} files",
+      "images": "{count} image | {count} images"
     }
   },
   "sections": {
@@ -22,6 +23,67 @@
     "files-list": {
       "title": "Images",
       "subtitle": "Total size:"
+    },
+    "options": {
+      "select": [
+        {
+          "title": "Optimization Options",
+          "options": [
+            {
+              "title": "Compress",
+              "description": "Reduce the file size without losing quality"
+            },
+            {
+              "title": "Convert to WebP",
+              "description": "Convert images to the WebP format for better compression"
+            },
+            {
+              "title": "Convert to AVIF",
+              "description": "Convert images to the AVIF format for better compression"
+            }
+          ]
+        },
+        {
+          "title": "Save Optimized",
+          "options": [
+            {
+              "title": "Same Folder",
+              "description": "Save optimized images in the same folder as the original"
+            },
+            {
+              "title": "Downloads",
+              "description": "Save optimized images in the downloads folder"
+            },
+            {
+              "title": "Custom",
+              "description": "Choose a custom folder to save optimized images"
+            }
+          ]
+        }
+      ],
+      "range": [
+        {
+          "title": "Quality",
+          "min": "Lower Size",
+          "max": "Higher Quality"
+        }
+      ],
+      "radio": [
+        {
+          "title": "File Action",
+          "options": [
+            {
+              "title": "Rename Compressed",
+              "description": "Rename compressed files with a suffix"
+            },
+            {
+              "title": "Overwrite Original",
+              "description": "Replace original files with compressed versions"
+            }
+          ]
+        }
+      ],
+      "button": "Optimize"
     }
   }
 }

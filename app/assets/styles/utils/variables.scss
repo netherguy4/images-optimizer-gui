@@ -13,6 +13,7 @@ $text-color-warn: light-dark(#E7000B, #FF6467);
 $background-color-primary: light-dark(#fff, #1D293D);
 $background-color-secondary: light-dark(#F1F5F9, #314158);
 $background-color-tertiary: light-dark(#F8FAFC, #314158);
+$background-color-accent: light-dark(#EFF6FF, #162456);
 $background-color-additional: light-dark(#DBEAFE, #1C398E);
 $background-color-warn: light-dark(#FEF2F2, #460809);
 // icons
@@ -25,6 +26,10 @@ $border-color-primary: light-dark(#E2E8F0, #050608ff);
 $border-color-secondary: light-dark(#E2E8F0, #314158);
 $border-color-tertiary: light-dark(#CAD5E2, #314158);
 $border-color-accent: light-dark(#90A1B9, #45556C);
+// accent
+$accent-color-primary: #155DFC;
+$accent-color-secondary: #2B7FFF;
+$accent-color-tertiary: #1C398E;
 
 // paths
 // --------------------------

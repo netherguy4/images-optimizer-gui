@@ -2,16 +2,23 @@
 definePageMeta({
   key: 'fixed',
 });
+
+const filesStore = useFilesStore();
+const { items } = storeToRefs(filesStore);
 </script>
 
 <template>
-  <div class="pages-index">
+  <ASmoothList tag="div" class="pages-index">
     <SectionHead description="sections.head.description" />
 
     <SectionAddFiles />
 
-    <SectionFilesList />
-  </div>
+    <template v-if="items?.length">
+      <SectionFilesList />
+
+      <SectionOptions />
+    </template>
+  </ASmoothList>
 </template>
 
 <style lang="scss" scoped>
