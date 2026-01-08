@@ -131,7 +131,7 @@ pub async fn run_optimization(
 fn is_image(path: &Path) -> bool {
     if let Some(ext) = path.extension() {
         let ext_str = ext.to_string_lossy().to_lowercase();
-        return ["jpg", "jpeg", "png", "webp", "avif"].contains(&ext_str.as_str());
+        return ["jpg", "jpeg", "png"].contains(&ext_str.as_str());
     }
     false
 }
